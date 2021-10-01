@@ -2,12 +2,12 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import Config
+from app.config import config
 
 app = FastAPI()
 
 if __name__ == "__main__":
-    config = Config()
+
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
