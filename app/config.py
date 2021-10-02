@@ -14,6 +14,7 @@ class _Config:
         self.PROJECT_NAME = config.get("PROJECT_NAME", "Wealth-A-Lot")
         self.DEBUG = config.get("DEBUG", "1") == "1"
         self.RELOAD = config.get("RELOAD", "1") == "1"
+        self.DB_NAME = config.get("DB_NAME")
 
 
 class _Config_Keys:
