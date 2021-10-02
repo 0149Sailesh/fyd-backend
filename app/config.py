@@ -32,5 +32,16 @@ class _Config_Keys:
             print(f"Something went wrong while reading the keys, {e!r}")
 
 
+class _Api_Keys:
+    """Class for initializing API keys"""
+
+    def __init__(self):
+        _path = _here + "/../.env"
+        config = dotenv_values(_path)
+        self.CLIENT_API_KEY = config.get("CLIENT_API_KEY", "")
+        self.AA_API_KEY = config.get("AA_API_KEY", "")
+
+
 config = _Config()
 keys = _Config_Keys()
+api_keys = _Api_Keys()
