@@ -1,11 +1,7 @@
 from datetime import datetime
-import requests
-from uuid import uuid4
 
 from app.helpers import convertDateToISOFormat
-from utils.request_signing import makeDetachedJWS
 
-from app.config import api_keys
 
 # https://docs.setu.co/data/account-aggregator/consent-object#the-consent-object
 def generateConsentObject(phoneNo):
@@ -43,24 +39,3 @@ def generateConsentObject(phoneNo):
     }
 
     return consentObj
-
-
-def sendFConsentRequest(phoneNumber):
-    """Creates a consent request for the user with the given phone number and returns the response"""
-
-    data = {
-        "ver": "1.0",
-        "timestamp": (datetime.now().isoformat()),
-        "txnid": str(uuid4()),
-        "ConsentDetail": generateConsentObject(phoneNumber),
-    }
-    headers = {
-        "x-jws-signature": makeDetachedJWS(data),
-        "client_api_key": api_keys.CLIENT_API_KEY,
-    }
-
-    url = "https://aa-sandbox.setu.co/Consent"
-
-    response = requests.post(url, headers=headers, data=data)
-
-    return response.status_code == requests.codes.ok, response.json()
