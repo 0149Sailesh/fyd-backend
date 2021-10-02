@@ -10,12 +10,15 @@ from app.config import api_keys
 from app.helpers import parseControllerResponse
 
 
-def createAConsentRequest(mobileNumber, **kwargs):
+# CONSENT FLOW
+
+
+def createAConsentRequestHandler(mobileNumber, **kwargs):
     """Sends an API request to the SETU Api requesting for a user's Consent
     Stores the ConsentHandle received from the API, and the status to the database"""
 
     isResponseParsed = kwargs.get("isParsed", False)
-    (success, response) = _sendFConsentRequest(mobileNumber)
+    (success, response) = _sendConsentRequestToSetu(mobileNumber)
 
     if not success:
         # request failed for some reason
@@ -29,9 +32,10 @@ def createAConsentRequest(mobileNumber, **kwargs):
         )
 
     # successful, do something
+    # TODO: do all db stuff
 
 
-def _sendFConsentRequest(phoneNumber):
+def _sendConsentRequestToSetu(phoneNumber):
     """Creates a consent request for the user with the given phone number and returns the response"""
 
     data = {
@@ -50,3 +54,23 @@ def _sendFConsentRequest(phoneNumber):
     response = requests.post(url, headers=headers, data=data)
 
     return response.status_code == requests.codes.ok, response.json()
+
+
+def approveConsent(consentId):
+    """Updates consent model with the relevent details"""
+    pass
+
+
+def rejectConsent(consentId):
+    """Updates consent model with the relevent details"""
+    pass
+
+
+def revokeConsent(consentId):
+    """Updates consent model with the relevent details"""
+    pass
+
+
+def pausedConsent(consentId):
+    """Updates consent model with the relevent details"""
+    pass
