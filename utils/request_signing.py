@@ -2,7 +2,7 @@ import jwt
 import json
 import base64
 
-from app.config import keys
+from app.config import keys, api_keys
 
 
 # https://docs.setu.co/data/account-aggregator/request-signing#request-signing
@@ -21,6 +21,11 @@ def makeDetachedJWS(payload):
     splittedJWS[1] = ""
     return ".".join(splittedJWS)
 
+def createAuthHeadersForAPI(payload):
+    return {
+        "x-jws-signature": makeDetachedJWS(payload),
+        "client_api_key": api_keys.CLIENT_API_KEY,
+    }
 
 def base64url_encode(input):
     return base64.urlsafe_b64encode(input).replace(b"=", b"")

@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from controllers.setu import createAConsentRequestHandler
+from controllers.setu import createAConsentRequestHandler, checkConsentStatusHandler
 
 router = APIRouter()
 
@@ -14,12 +14,18 @@ def requestForUserConsent():
     return {"route": "setu consent route"}
 
 
-@router.get(
-    "/request",
-)
+@router.get("/request")
 def requestForUserConsent():
-    mobileNumber = "999999999"
+    mobileNumber = "9999999999"
     resp = createAConsentRequestHandler(mobileNumber, isParsed=True)
+    if resp["statusCode"] == 200:
+        return {"data": resp["data"]}
+    return {"error": resp["error"]}
+
+
+@router.get("/check/{consentHandle}")
+def checkConsentStatus(consentHandle: str):
+    resp = checkConsentStatusHandler(consentHandle=consentHandle, isParsed=True)
     if resp["statusCode"] == 200:
         return {"data": resp["data"]}
     return {"error": resp["error"]}

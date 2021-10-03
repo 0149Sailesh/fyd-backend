@@ -3,7 +3,7 @@ from datetime import datetime
 import requests
 from uuid import uuid4
 
-from utils.request_signing import makeDetachedJWS
+from utils.request_signing import makeDetachedJWS, createAuthHeadersForAPI
 from utils.setu_payloads import generateConsentObject
 
 from app.config import api_keys
@@ -42,6 +42,46 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
     )
 
 
+def checkConsentStatusHandler(consentHandle, **kwargs):
+    isResponseParsed = kwargs.get("isParsed", False)
+
+    success, response = _checkConsentStatusWithSetu(consentHandle)
+
+    if not success:
+        print(
+            f"failed to check consent details for {consentHandle = } due to, {response}"
+        )
+        return (
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=response
+            )
+            if isResponseParsed
+            else {"error": response}
+        )
+
+    # TODO: do all db stuff
+
+    return (
+        parseControllerResponse(data={"setu": response}, statuscode=200)
+        if isResponseParsed
+        else True
+    )
+
+
+def _checkConsentStatusWithSetu(consentHandle):
+    """Checks for consent status by hitting the setu api"""
+
+    url = "https://aa-sandbox.setu.co/Consent/handle/" + consentHandle
+
+    headers = createAuthHeadersForAPI({"id": consentHandle})
+
+    response = requests.get(url, headers=headers)
+
+    print(str(response))
+
+    return response.status_code == requests.codes.ok, response.json()
+
+
 def _sendConsentRequestToSetu(phoneNumber):
     """Creates a consent request for the user with the given phone number and returns the response"""
 
@@ -51,10 +91,7 @@ def _sendConsentRequestToSetu(phoneNumber):
         "txnid": str(uuid4()),
         "ConsentDetail": generateConsentObject(phoneNumber),
     }
-    headers = {
-        "x-jws-signature": makeDetachedJWS(data),
-        "client_api_key": api_keys.CLIENT_API_KEY,
-    }
+    headers = createAuthHeadersForAPI(data)
 
     url = "https://aa-sandbox.setu.co/Consent"
 
