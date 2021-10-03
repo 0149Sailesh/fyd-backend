@@ -4,7 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import config
 
+from routes.setu import router as setuRouter
+
 app = FastAPI()
+
 
 if __name__ == "__main__":
 
@@ -15,6 +18,8 @@ if __name__ == "__main__":
         reload=config.RELOAD,
         debug=config.DEBUG,
     )
+
+app.include_router(setuRouter, prefix="/setu")
 
 
 @app.get("/", tags=["Root"], response_description="Hello World")

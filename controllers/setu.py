@@ -23,16 +23,23 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
     if not success:
         # request failed for some reason
         print(
-            f"request consent request failed for {mobileNumber = } due to, " + response
+            f"request consent request failed for {mobileNumber = } due to, {response}"
         )
         return (
-            parseControllerResponse({"success": False}, 500, error=response)
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=response
+            )
             if isResponseParsed
             else {"error": response}
         )
 
     # successful, do something
     # TODO: do all db stuff
+    return (
+        parseControllerResponse(data={"setu": response}, statuscode=200)
+        if isResponseParsed
+        else True
+    )
 
 
 def _sendConsentRequestToSetu(phoneNumber):
@@ -51,7 +58,7 @@ def _sendConsentRequestToSetu(phoneNumber):
 
     url = "https://aa-sandbox.setu.co/Consent"
 
-    response = requests.post(url, headers=headers, data=data)
+    response = requests.post(url, headers=headers, json=data)
 
     return response.status_code == requests.codes.ok, response.json()
 
