@@ -2,8 +2,9 @@
 from datetime import datetime
 import requests
 from uuid import uuid4
+import json
 
-from utils.request_signing import makeDetachedJWS, createAuthHeadersForAPI
+from utils.request_signing import createAuthHeadersForAPI
 from utils.setu_payloads import generateConsentObject
 
 from app.config import api_keys
@@ -43,6 +44,8 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
 
 
 def checkConsentStatusHandler(consentHandle, **kwargs):
+    """Checks the consent status by pinging the SETU Api.
+    Updates the database with relevent details"""
     isResponseParsed = kwargs.get("isParsed", False)
 
     success, response = _checkConsentStatusWithSetu(consentHandle)
@@ -50,6 +53,35 @@ def checkConsentStatusHandler(consentHandle, **kwargs):
     if not success:
         print(
             f"failed to check consent details for {consentHandle = } due to, {response}"
+        )
+        return (
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=response
+            )
+            if isResponseParsed
+            else {"error": response}
+        )
+
+    # TODO: do all db stuff
+    # Store the consentId
+
+    return (
+        parseControllerResponse(data={"setu": response}, statuscode=200)
+        if isResponseParsed
+        else True
+    )
+
+
+def fetchSignedConsentHandler(consentId, **kwargs):
+    """Fetched the signed consent from the setu API and sends appropriate response"""
+    # Do we need to add something to the db ?
+    isResponseParsed = kwargs.get("isParsed", False)
+
+    success, response = _fetchSignedConsentFromSetu(consentId)
+
+    if not success:
+        print(
+            f"failed to fetch signed consent details for {consentId = } due to, {response}"
         )
         return (
             parseControllerResponse(
@@ -68,6 +100,18 @@ def checkConsentStatusHandler(consentHandle, **kwargs):
     )
 
 
+def _fetchSignedConsentFromSetu(consentId):
+    """Calls the SETU API to get a signed consent request by passing its unique id"""
+
+    url = "https://aa-sandbox.setu.co/Consent/" + consentId
+    headers = createAuthHeadersForAPI({"id": consentId})
+
+    response = requests.get(url, headers=headers)
+    print(json.dumps(response.json(), indent=2))
+
+    return response.status_code == requests.codes.ok, response.json()
+
+
 def _checkConsentStatusWithSetu(consentHandle):
     """Checks for consent status by hitting the setu api"""
 
@@ -77,7 +121,7 @@ def _checkConsentStatusWithSetu(consentHandle):
 
     response = requests.get(url, headers=headers)
 
-    print(str(response))
+    print(json.dumps(response.json(), indent=2))
 
     return response.status_code == requests.codes.ok, response.json()
 
@@ -96,6 +140,8 @@ def _sendConsentRequestToSetu(phoneNumber):
     url = "https://aa-sandbox.setu.co/Consent"
 
     response = requests.post(url, headers=headers, json=data)
+
+    print(json.dumps(response.json(), indent=2))
 
     return response.status_code == requests.codes.ok, response.json()
 

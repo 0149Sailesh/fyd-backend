@@ -2,14 +2,16 @@
 
 from fastapi import APIRouter
 
-from controllers.setu import createAConsentRequestHandler, checkConsentStatusHandler
+from controllers.setu import (
+    createAConsentRequestHandler,
+    checkConsentStatusHandler,
+    fetchSignedConsentHandler,
+)
 
 router = APIRouter()
 
 
-@router.get(
-    "",
-)
+@router.get("")
 def requestForUserConsent():
     return {"route": "setu consent route"}
 
@@ -26,6 +28,14 @@ def requestForUserConsent():
 @router.get("/check/{consentHandle}")
 def checkConsentStatus(consentHandle: str):
     resp = checkConsentStatusHandler(consentHandle=consentHandle, isParsed=True)
+    if resp["statusCode"] == 200:
+        return {"data": resp["data"]}
+    return {"error": resp["error"]}
+
+
+@router.get("/fetch/{consentId}")
+def fetchSignedConsent(consentId: str):
+    resp = fetchSignedConsentHandler(consentId=consentId, isParsed=True)
     if resp["statusCode"] == 200:
         return {"data": resp["data"]}
     return {"error": resp["error"]}
