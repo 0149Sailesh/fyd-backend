@@ -1,9 +1,11 @@
 from motor.motor_asyncio import AsyncIOMotorClient
-from odmantic import AIOEngine
+from odmantic import AIOEngine, engine
 
 from app.config import config
 
-client = AsyncIOMotorClient("mongodb://localhost:27017/")
-
 # engine will be used to access all collections in db i.e to run queries
-engine = AIOEngine(motor_client=client, database=config.DB_NAME)
+
+
+def connect_db():
+    engine = AIOEngine(database=config.DB_NAME)
+    return engine

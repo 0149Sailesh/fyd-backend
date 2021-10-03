@@ -4,11 +4,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
 
+from app.config import config
+
 
 class AuthHandler():
     security = HTTPBearer()
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    secret = 'SECRET'
+    secret = config.JWT_SECRET
 
     def get_password_hash(self, password):
         return self.pwd_context.hash(password)

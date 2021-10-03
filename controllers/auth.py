@@ -1,25 +1,28 @@
-from app.db import engine
+from main import engine
 from model.user import UserModel
 from fastapi import HTTPException
 
 
-from routes.auth import RegistrationDetails, LoginDetails
+from schema.auth import RegistrationDetails, LoginDetails
 from utils.auth import auth_hanlder
 
 
 async def register_user(user: RegistrationDetails):
     # checking if user already exist
+    print("1")
     user_instance = await engine.find_one(UserModel, UserModel.phone_number == user.phone_number)
-    if not user_instance:
+    print("2")
+    if user_instance:
         raise HTTPException(
             status_code=400, detail="phonenumber already exist")
     # creating new user instance
     user_instance = UserModel(name=user.name, password=auth_hanlder.get_password_hash(
         user.password), phone_number=user.phone_number)
     # saving new user in db
+    print("4")
     saved_user = await engine.save(user_instance)
-
-    if saved_user == None:
+    print("3")
+    if saved_user is None:
         raise HTTPException(
             status_code=500, detail="something went wrong, try again later")
 

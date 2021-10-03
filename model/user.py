@@ -25,4 +25,4 @@ class UserModel(Model):
     password: str
     phone_number: str = Field(primary_field=True)
     # can be null or string(data)
-    consent_data: Optional(ConsentModel)
+    consent_data: Optional[ConsentModel] = None

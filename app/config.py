@@ -15,6 +15,7 @@ class _Config:
         self.DEBUG = config.get("DEBUG", "1") == "1"
         self.RELOAD = config.get("RELOAD", "1") == "1"
         self.DB_NAME = config.get("DB_NAME")
+        self.JWT_SECRET = config.get("JWT_SECRET")
 
 
 class _Config_Keys:
