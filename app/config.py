@@ -10,10 +10,14 @@ class _Config:
     def __init__(self):
         _path = _here + "/../.env"
         config = dotenv_values(_path)
-        self.PORT = int(config.get("PORT", 8000))
+        self.PORT = os.environ.get("PORT") if os.environ.get("ENV", "development") == "production" else (
+            config.get("PORT", 8000))
+        self.PORT = int(self.PORT)
         self.PROJECT_NAME = config.get("PROJECT_NAME", "Wealth-A-Lot")
         self.DEBUG = config.get("DEBUG", "1") == "1"
         self.RELOAD = config.get("RELOAD", "1") == "1"
+        self.DB_NAME = config.get("DB_NAME")
+        self.JWT_SECRET = config.get("JWT_SECRET")
 
 
 class _Config_Keys:
