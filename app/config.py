@@ -10,14 +10,29 @@ class _Config:
     def __init__(self):
         _path = _here + "/../.env"
         config = dotenv_values(_path)
-        self.PORT = os.environ.get("PORT") if os.environ.get("ENV", "development") == "production" else (
-            config.get("PORT", 8000))
+        self.PORT = (
+            os.environ.get("PORT")
+            if os.environ.get("ENV", "development") == "production"
+            else (config.get("PORT", 8000))
+        )
         self.PORT = int(self.PORT)
         self.PROJECT_NAME = config.get("PROJECT_NAME", "Wealth-A-Lot")
         self.DEBUG = config.get("DEBUG", "1") == "1"
         self.RELOAD = config.get("RELOAD", "1") == "1"
         self.DB_NAME = config.get("DB_NAME")
         self.JWT_SECRET = config.get("JWT_SECRET")
+        self.SETU_API_BASE_URL = config.get(
+            "SETU_API_BASE_URL", "https://aa-sandbox.setu.co/"
+        )
+        self.RAHASYA_BASE_URL = config.get(
+            "RAHASYA_BASE_URL", "https://rahasya.setu.co/ecc/v1/"
+        )
+        self.normalizeUrl()
+
+    def normalizeUrl(self):
+        """Adds a '/' to the end of the url if it doesn't exist already"""
+        self.SETU_API_BASE_URL += "" if self.SETU_API_BASE_URL[-1] == "/" else "/"
+        self.RAHASYA_BASE_URL += "" if self.RAHASYA_BASE_URL[-1] == "/" else "/"
 
 
 class _Config_Keys:

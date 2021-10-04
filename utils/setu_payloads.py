@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 
 from app.helpers import convertDateToISOFormat
 
@@ -11,7 +12,7 @@ def generateConsentObject(phoneNo):
         "consentStart": convertDateToISOFormat(datetime.now()),
         # 1 day to accept the consent request
         "consentExpiry": convertDateToISOFormat(
-            datetime.fromtimestamp((datetime.now().timestamp() + 60 * 60 * 24))
+            datetime.fromtimestamp((datetime.now().timestamp() + 24 * 60 * 60))
         ),
         "consentMode": "VIEW",
         "fetchType": "ONETIME",
@@ -25,10 +26,10 @@ def generateConsentObject(phoneNo):
             "text": "Wealth management service",
             "Category": {"type": "string"},
         },
-        "FIDataRange": {  # all transactions in the past year
+        "FIDataRange": {  # all transactions in the past year + 12 hrs
             "from": convertDateToISOFormat(
                 datetime.fromtimestamp(
-                    (datetime.now().timestamp() - (365 * 60 * 60 * 24))
+                    (datetime.now().timestamp() - ((365 * 24 * 60 * 60) + (12 * 3600)))
                 )
             ),
             "to": convertDateToISOFormat(datetime.now()),
@@ -39,3 +40,22 @@ def generateConsentObject(phoneNo):
     }
 
     return consentObj
+
+
+def generateBodyForDataRequest(signedConsent, consentId, keys):
+    """Generates the body for requesting FI data"""
+    return {
+        "ver": "1.0",
+        "timestamp": convertDateToISOFormat(datetime.now()),
+        "txnid": str(uuid4()),
+        "FIDataRange": {  # all transactions in the past year
+            "from": convertDateToISOFormat(
+                datetime.fromtimestamp(
+                    (datetime.now().timestamp() - ((365 * 24 * 60 * 60)))
+                )
+            ),
+            "to": convertDateToISOFormat(datetime.now()),
+        },
+        "Consent": {"id": consentId, "digitalSignature": signedConsent.split(".")[2]},
+        "KeyMaterial": keys["KeyMaterial"],
+    }
