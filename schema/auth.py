@@ -25,6 +25,7 @@ class RegistrationDetails(BaseModel):
     def check_phone_number(cls, v: str):
         if not (len(v) == 10 and v.isdigit()):
             raise ValueError("invalid phone number")
+        return v
 
 
 class LoginDetails(BaseModel):
@@ -33,5 +34,6 @@ class LoginDetails(BaseModel):
 
     @validator("phone_number")
     def check_phone_number(cls, v: str):
-        if not (len(v) < 10 and v.isdigit()):
+        if not (len(v) == 10 and v.isdigit()):
             raise ValueError("invalid phone number")
+        return v

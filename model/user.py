@@ -1,28 +1,9 @@
-from typing import Optional
-from odmantic import EmbeddedModel, Model, Field
-from datetime import datetime
-from enum import Enum
+from mongoengine import Document
+from mongoengine.fields import StringField
 
 
-class StatusEnum(str, Enum):
-    APPROVED = "approved"
-    PENDING = "pending"
-    REJECTED = "rejected"
-    EXPIRED = "expired"
-    REVOKED = "revoked"
-
-
-class ConsentModel(EmbeddedModel):
-    consent_id: str
-    created_at: datetime = Field(default=datetime.utcnow)
-    updated_at: datetime = Field(default=datetime.utcnow)
-    data: str
-    status: StatusEnum
-
-
-class UserModel(Model):
-    name: str
-    password: str
-    phone_number: str = Field(primary_field=True)
-    # can be null or string(data)
-    consent_data: Optional[ConsentModel] = None
+class User(Document):
+    name = StringField(max_length=200, Required=True)
+    phone_number = StringField(
+        max_length=10, Required=True, primary_key=True)
+    password = StringField(Required=True)

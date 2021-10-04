@@ -3,12 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import config
-from routes.api import router as api_router
 from app.db import connect_db
+from routes.api import router as api_router
 
 app = FastAPI()
-
-engine = connect_db()
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -18,6 +16,13 @@ if __name__ == "__main__":
         reload=config.RELOAD,
         debug=config.DEBUG,
     )
+
+
+@app.on_event("startup")
+async def startup():
+    # db connection
+    connect_db()
+
 
 app.include_router(api_router, tags=["api"], prefix="/api")
 
