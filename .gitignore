@@ -3,4 +3,3 @@ venv
 __pycache__
 keys/private_key.pem
 keys/public_key.pem
-key-setup.sh
