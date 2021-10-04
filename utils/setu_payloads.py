@@ -59,3 +59,28 @@ def generateBodyForDataRequest(signedConsent, consentId, keys):
         "Consent": {"id": consentId, "digitalSignature": signedConsent.split(".")[2]},
         "KeyMaterial": keys["KeyMaterial"],
     }
+
+
+def generateBodyForDecryptData(finData, key):
+    resp = []
+    # typeofFI = []
+
+    def concatEncryptedFIData(data):
+        concatedStr = ""
+        for d in data:
+            concatedStr += d["encryptedFI"]
+
+        return concatedStr
+
+    for singleFinData in finData["FI"]:
+        resp.append(
+            {
+                "base64Data": concatEncryptedFIData(singleFinData["data"]),
+                "base64RemoteNonce": singleFinData["KeyMaterial"]["Nonce"],
+                "base64YourNonce": key["KeyMaterial"]["Nonce"],
+                "ourPrivateKey": key["privateKey"],
+                "remoteKeyMaterial": singleFinData["KeyMaterial"],
+            }
+        )
+
+    return resp

@@ -21,11 +21,13 @@ def makeDetachedJWS(payload):
     splittedJWS[1] = ""
     return ".".join(splittedJWS)
 
-def createAuthHeadersForAPI(payload):
+
+def createAuthHeadersForSetuAPI(payload):
     return {
         "x-jws-signature": makeDetachedJWS(payload),
         "client_api_key": api_keys.CLIENT_API_KEY,
     }
+
 
 def base64url_encode(input):
     return base64.urlsafe_b64encode(input).replace(b"=", b"")
