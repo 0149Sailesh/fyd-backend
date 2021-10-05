@@ -11,6 +11,7 @@ from controllers.user import (
     createConsentObj,
     findUserWithId,
     updateConsentStatusAndConsentId,
+    updateSignedConsent,
 )
 
 from utils.auth import auth_handler
@@ -46,6 +47,7 @@ def requestForUserConsent(userId=Depends(auth_handler.auth_wrapper)):
 
 @router.get("/check")
 def checkConsentStatus(userId=Depends(auth_handler.auth_wrapper)):
+    """NOTE: If the status is ACTIVE, call the /fetch route immediately"""
     user, error = findUserWithId(userId)
     if error:
         return ErrorResponseModel(error, 401, message="Invalid user id")
@@ -88,9 +90,45 @@ def checkConsentStatus(userId=Depends(auth_handler.auth_wrapper)):
     )
 
 
-@router.get("/fetch/{consentId}")
-def fetchSignedConsent(consentId: str):
-    resp = fetchSignedConsentHandler(consentId=consentId, isParsed=True)
-    if resp["statusCode"] == 200:
-        return {"data": resp["data"]}
-    return {"error": resp["error"]}
+@router.get("/fetch")
+def fetchSignedConsent(userId=Depends(auth_handler.auth_wrapper)):
+    user, error = findUserWithId(userId)
+    if error:
+        return ErrorResponseModel(error, 401, message="Invalid user id")
+    consent = user.consentData.fetch()
+    if consent.status.value != 1:
+        return ErrorResponseModel(
+            error={
+                "error": "Insufficient permissions",
+            },
+            statuscode=400,
+            message="Insufficient permissions",
+        )
+    resp, error = fetchSignedConsentHandler(consent.consentId)
+    if error:
+        return ErrorResponseModel(
+            error={
+                "error": error,
+                "message": "something went wrong while fetching signed consent",
+            },
+            statuscode=500,
+            message="something went wrong while fetching signed consent",
+        )
+    resp, error = updateSignedConsent(
+        consent.consentHandle, resp["signedConsent"], resp["ConsentUse"]["count"]
+    )
+
+    if error:
+        return ErrorResponseModel(
+            error={
+                "error": error,
+                "message": "something went wrong while fetching signed consent",
+            },
+            statuscode=500,
+            message="something went wrong while fetching signed consent",
+        )
+
+    return ResponseModel(
+        data={"success": True},
+        message="Successfully fetched signed consent",
+    )

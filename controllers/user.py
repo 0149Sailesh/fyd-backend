@@ -138,7 +138,7 @@ def updateConsentStatusAndConsentId(consentHandle, consentId, newStatus, **kwarg
             parseControllerResponse(
                 data={"success": False},
                 statuscode=500,
-                error="ConsentHandle doesnot exist",
+                error="ConsentHandle does not exist",
             )
             if isResponseParsed
             else (None, "ConsentHandle doesnot exist")
@@ -147,6 +147,43 @@ def updateConsentStatusAndConsentId(consentHandle, consentId, newStatus, **kwarg
         print(
             f"couldn't update consent with with {consentHandle = }, {consentId= }, {newStatus = }, becoz {e}"
         )
+        return (
+            parseControllerResponse(data={"success": False}, statuscode=500, error=e)
+            if isResponseParsed
+            else (None, {"error": e})
+        )
+
+
+def updateSignedConsent(consentHandle, signedConsent, fetchCount, **kwargs):
+    """Updates the signedConsent for the given consentHandle"""
+    isResponseParsed = kwargs.get("isParsed", False)
+
+    try:
+        consent = Consent.objects.get(consentHandle=consentHandle)
+        consent.signedConsent = signedConsent
+        consent.fetchCount = int(fetchCount)
+
+        consent.save()
+
+        return (
+            parseControllerResponse(data={"consent": consent.to_json()}, statuscode=200)
+            if isResponseParsed
+            else (consent, None)
+        )
+
+    except Consent.DoesNotExist:
+        return (
+            parseControllerResponse(
+                data={"success": False},
+                statuscode=500,
+                error="Consent Handle does not exist",
+            )
+            if isResponseParsed
+            else (None, "ConsentHandle doesnot exist")
+        )
+
+    except Exception as e:
+        print(f"Updates the signedConsent for the given {consentHandle = }, becoz {e}")
         return (
             parseControllerResponse(data={"success": False}, statuscode=500, error=e)
             if isResponseParsed

@@ -2,7 +2,7 @@ from mongoengine import Document
 from mongoengine.fields import (
     DateField,
     DateTimeField,
-    ReferenceField,
+    IntField,
     StringField,
     EnumField,
 )
@@ -42,3 +42,4 @@ class Consent(Document):
     updatedAt = DateTimeField(default=datetime.utcnow())
     status = EnumField(ConsentStatusEnum, default=ConsentStatusEnum.PENDING)
     signedConsent = StringField(default="")
+    fetchCount = IntField(default=1)

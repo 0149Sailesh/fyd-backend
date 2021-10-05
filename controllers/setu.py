@@ -24,6 +24,7 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
     Stores the ConsentHandle received from the API, and the status to the database"""
 
     isResponseParsed = kwargs.get("isParsed", False)
+    # TODO: refactor so its like other
     (success, response) = _sendConsentRequestToSetu(mobileNumber)
 
     if not success:
@@ -78,18 +79,19 @@ def fetchSignedConsentHandler(consentId, **kwargs):
     # Do we need to add something to the db ?
     isResponseParsed = kwargs.get("isParsed", False)
 
-    success, response = _fetchSignedConsentFromSetu(consentId)
+    response, error = _fetchSignedConsentFromSetu(consentId)
 
-    if not success:
+    if error:
         print(
-            f"failed to fetch signed consent details for {consentId = } due to, {response}"
+            f"failed to fetch signed consent details for {consentId = } due to, {error}"
         )
         return (
             parseControllerResponse(
-                data={"success": False}, statuscode=500, error=response
+                data={"success": False}, statuscode=500, error=error
             )
             if isResponseParsed
-            else {"error": response}
+            else None,
+            {"error": error},
         )
 
     # TODO: do all db stuff
@@ -97,7 +99,7 @@ def fetchSignedConsentHandler(consentId, **kwargs):
     return (
         parseControllerResponse(data={"setu": response}, statuscode=200)
         if isResponseParsed
-        else True
+        else (response, None)
     )
 
 
@@ -110,7 +112,11 @@ def _fetchSignedConsentFromSetu(consentId):
     response = requests.get(url, headers=headers)
     print(json.dumps(response.json(), indent=2))
 
-    return response.status_code == requests.codes.ok, response.json()
+    return (
+        (response.json(), None)
+        if response.status_code == requests.codes.ok
+        else (None, response.json())
+    )
 
 
 def _checkConsentStatusWithSetu(consentHandle):
@@ -125,8 +131,9 @@ def _checkConsentStatusWithSetu(consentHandle):
     print(json.dumps(response.json(), indent=2))
 
     return (
-        response.json(),
-        None if response.status_code == requests.codes.ok else response.json(),
+        (response.json(), None)
+        if response.status_code == requests.codes.ok
+        else (None, response.json())
     )
 
 
