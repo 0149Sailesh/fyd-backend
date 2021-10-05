@@ -1,6 +1,6 @@
 """All consent Routes for the app"""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from controllers.setu import (
     createAConsentRequestHandler,
@@ -8,12 +8,15 @@ from controllers.setu import (
     fetchSignedConsentHandler,
 )
 
+from utils.auth import auth_handler
+
 router = APIRouter()
 
 
 @router.get("")
-def requestForUserConsent():
-    return {"route": "setu consent route"}
+def requestForUserConsent(user_id=Depends(auth_handler.auth_wrapper)):
+
+    return {"route": user_id}
 
 
 @router.get("/request")
