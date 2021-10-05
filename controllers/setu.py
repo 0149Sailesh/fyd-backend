@@ -4,6 +4,7 @@ import requests
 from uuid import uuid4
 import json
 import base64
+from controllers.user import createFIConsentObj
 
 from utils.request_signing import createAuthHeadersForSetuAPI
 from utils.setu_payloads import (
@@ -160,43 +161,63 @@ def _sendConsentRequestToSetu(phoneNumber):
 # DATA FLOW
 
 
-def requestFIDataHandler(**kwargs):
+def requestFIDataHandler(user, **kwargs):
     """Requests for data by hitting the Setu API with the consentId and signedConsent"""
 
-    (success, keys) = _generateNewECDHKeys()
-
-    # TODO: store the keys in database
+    (keys, error) = _generateNewECDHKeys()
 
     isResponseParsed = kwargs.get("isParsed", False)
 
-    if not success:
+    if error:
         # Something went wrong
-        print("Couldn't generate keys because, " + keys)
+        print("Couldn't generate keys because, " + error)
         return (
-            parseControllerResponse(data={"success": False}, statuscode=500, error=keys)
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=error
+            )
             if isResponseParsed
-            else {"error": keys}
+            else (None, {"error": error})
         )
 
-    # TODO: Remove this hard code, fetch it from database
-    signedConsent = ""
-    consentId = ""
+    consent = user.consentData.fetch()
+    signedConsent = consent.signedConsent
+    consentId = consent.consentId
 
-    (success, resp) = _sendDataReqestToSetu(signedConsent, consentId, keys)
+    (resp, error) = _sendDataReqestToSetu(signedConsent, consentId, keys)
 
-    if not success:
+    if error:
         # Something went wrong
-        print(f"Couldn't request data for {consentId = } because, {str(resp)}")
+        print(f"Couldn't request data for {consentId = } because, {str(error)}")
         return (
-            parseControllerResponse(data={"success": False}, statuscode=500, error=resp)
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=error
+            )
             if isResponseParsed
-            else {"error": resp}
+            else (None, {"error": error})
         )
+
+    (newFIData, error) = createFIConsentObj(keys, resp["sessionId"])
+
+    if error:
+        # Something went wrong
+        print(
+            f"Couldn't create data data obj for sessionId = {resp['sessionId']} because, {str(error)}"
+        )
+        return (
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=error
+            )
+            if isResponseParsed
+            else (None, {"error": error})
+        )
+
+    user.fetchFIData = newFIData
+    user.save()
 
     return (
-        parseControllerResponse(data={"setu": resp}, statuscode=200)
+        parseControllerResponse(data={"success": True}, statuscode=200)
         if isResponseParsed
-        else True
+        else (True, None)
     )
 
 
@@ -280,11 +301,15 @@ def _generateNewECDHKeys():
 
     url = config.RAHASYA_BASE_URL + "generateKey"
 
-    resp = requests.get(url)
+    response = requests.get(url)
 
-    print(json.dumps(resp.json(), indent=2))
+    print(json.dumps(response.json(), indent=2))
 
-    return resp.status_code == requests.codes.ok, resp.json()
+    return (
+        (response.json(), None)
+        if response.status_code == requests.codes.ok
+        else (None, response.json())
+    )
 
 
 def _sendDataReqestToSetu(signedConsent, consentId, keys):
@@ -298,9 +323,15 @@ def _sendDataReqestToSetu(signedConsent, consentId, keys):
 
     url = config.SETU_API_BASE_URL + "FI/request"
 
-    resp = requests.post(url, headers=headers, json=payload)
+    response = requests.post(url, headers=headers, json=payload)
 
-    return resp.status_code == requests.codes.ok, resp.json()
+    print(json.dumps(response.json(), indent=4))
+
+    return (
+        (response.json(), None)
+        if response.status_code == requests.codes.ok
+        else (None, response.json())
+    )
 
 
 def _fetchFIDataFromSetu(sessionId):

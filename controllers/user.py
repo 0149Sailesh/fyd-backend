@@ -1,5 +1,6 @@
 """All CRUD operations for User, Consent, Data, BlockInfo"""
 from datetime import datetime
+import json
 
 from model.user import User
 from model.consent import Consent, ConsentStatusEnum
@@ -188,4 +189,37 @@ def updateSignedConsent(consentHandle, signedConsent, fetchCount, **kwargs):
             parseControllerResponse(data={"success": False}, statuscode=500, error=e)
             if isResponseParsed
             else (None, {"error": e})
+        )
+
+
+# FI Data CRUD
+
+
+def createFIConsentObj(key, sessionId, **kwargs):
+    """Creates a new FI Consent Obj with the given key and sessionId"""
+
+    isResponseParsed = kwargs.get("isParsed", False)
+
+    try:
+        newFIData = FIData(sessionId=sessionId)
+        stringifiedKey = json.dumps(key)
+        newFIData.key = stringifiedKey
+
+        newFIData.save()
+
+        return (
+            parseControllerResponse(
+                data={"FIData": newFIData.to_json()},
+                statuscode=200,
+            )
+            if isResponseParsed
+            else (newFIData, None)
+        )
+
+    except Exception as e:
+        print(f"couldn't create FIData for user with and {sessionId = }, becoz {e}")
+        return (
+            parseControllerResponse(data={"success": False}, statuscode=500, error=e)
+            if isResponseParsed
+            else (False, {"error": e})
         )

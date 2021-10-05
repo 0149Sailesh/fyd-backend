@@ -24,12 +24,5 @@ class FIData(Document):
     """Consent Model"""
 
     key = StringField()  # stringified key ECDH key obj
-    sessionId = StringField(default="")
+    sessionId = StringField(default="", unique=True)
     status = EnumField(DataStatusEnum, default=DataStatusEnum.BEGIN_REQUEST)
-
-    def parseKey(self):
-        return json.loads(self.key)
-
-    @classmethod
-    def stringifyKey(key):
-        return json.dump(key)
