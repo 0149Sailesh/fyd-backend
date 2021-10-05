@@ -19,7 +19,7 @@ class _Config:
         self.PROJECT_NAME = config.get("PROJECT_NAME", "Wealth-A-Lot")
         self.DEBUG = config.get("DEBUG", "1") == "1"
         self.RELOAD = config.get("RELOAD", "1") == "1"
-        self.DB_NAME = config.get("DB_NAME")
+        self.DB_NAME = config.get("DB_NAME", "wealth-a-lot")
         self.JWT_SECRET = config.get("JWT_SECRET")
         self.SETU_API_BASE_URL = config.get(
             "SETU_API_BASE_URL", "https://aa-sandbox.setu.co/"

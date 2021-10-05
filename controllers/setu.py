@@ -36,7 +36,8 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
                 data={"success": False}, statuscode=500, error=response
             )
             if isResponseParsed
-            else {"error": response}
+            else False,
+            {"error": response},
         )
 
     # successful, do something
@@ -44,7 +45,7 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
     return (
         parseControllerResponse(data={"setu": response}, statuscode=200)
         if isResponseParsed
-        else True
+        else (response, None)
     )
 
 
@@ -67,13 +68,11 @@ def checkConsentStatusHandler(consentHandle, **kwargs):
             else {"error": response}
         )
 
-    # TODO: do all db stuff
-    # Store the consentId
-
     return (
         parseControllerResponse(data={"setu": response}, statuscode=200)
         if isResponseParsed
-        else True
+        else True,
+        response,
     )
 
 
@@ -149,26 +148,6 @@ def _sendConsentRequestToSetu(phoneNumber):
     print(json.dumps(response.json(), indent=2))
 
     return response.status_code == requests.codes.ok, response.json()
-
-
-def approveConsent(consentId):
-    """Updates consent model with the relevent details"""
-    pass
-
-
-def rejectConsent(consentId):
-    """Updates consent model with the relevent details"""
-    pass
-
-
-def revokeConsent(consentId):
-    """Updates consent model with the relevent details"""
-    pass
-
-
-def pausedConsent(consentId):
-    """Updates consent model with the relevent details"""
-    pass
 
 
 # DATA FLOW

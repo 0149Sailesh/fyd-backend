@@ -9,10 +9,6 @@ from mongoengine.fields import (
 from enum import Enum
 
 from datetime import datetime
-from model.user import User
-
-
-status_choices = ("approved", "pending", "rejected", "expired", "revoked")
 
 
 def consentStatusHelper(key):
@@ -21,27 +17,28 @@ def consentStatusHelper(key):
         "2": "Requested user for consent",
         "3": "User rejected consent request",
         "4": "User revoked consent request",
-        "5": "Consent approval expired"
+        "5": "Consent approval expired",
+        "6": "Consent Approval has been paused"
         # BUG: we wont know if the consent has expired, (can
         # be ignored for now, as consent length = 1 year )
     }[key]
 
 
 class ConsentStatusEnum(Enum):
-    APPROVED = 1
+    ACTIVE = 1
     PENDING = 2
     REJECTED = 3
     REVOKED = 4
     EXPIRED = 5
+    PAUSED = 6
 
 
 class Consent(Document):
     """Consent Model"""
 
-    owner = ReferenceField(User)
-    consent_handle = StringField()
-    consent_id = StringField()
-    created_at = DateTimeField(default=datetime.utcnow())
-    updated_at = DateTimeField(default=datetime.utcnow())
+    consentHandle = StringField(Required=True, unique=True)
+    consentId = StringField(unique=True)
+    createdAt = DateTimeField(default=datetime.utcnow())
+    updatedAt = DateTimeField(default=datetime.utcnow())
     status = EnumField(ConsentStatusEnum, default=ConsentStatusEnum.PENDING)
-    signed_consent = StringField(default="")
+    signedConsent = StringField(default="")

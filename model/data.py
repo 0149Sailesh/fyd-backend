@@ -4,7 +4,6 @@ from enum import Enum
 import json
 
 from datetime import datetime
-from model.user import User
 
 
 def dataStatusHelper(key):

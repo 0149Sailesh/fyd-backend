@@ -1,12 +1,12 @@
 from pydantic import BaseModel
 
 
-class _Notifier_NotificationRequestObj(BaseModel):
+class Notifier_NotificationRequestObj(BaseModel):
     type: str
     id: str
 
 
-class _Notifier_ConsentStatusNotification(BaseModel):
+class Notifier_ConsentStatusNotification(BaseModel):
     consentId: str
     consentHandle: str
     consentStatus: str  # ACTIVE | REJECTED | REVOKED | PAUSED
@@ -17,6 +17,6 @@ class ConsentNotificationWebhook_Request(BaseModel):
 
     ver: str
     timestamp: str
-    tnxid: str
-    Notifier: _Notifier_NotificationRequestObj
-    ConsentStatusNotification: _Notifier_ConsentStatusNotification
+    txnid: str
+    Notifier: Notifier_NotificationRequestObj
+    ConsentStatusNotification: Notifier_ConsentStatusNotification

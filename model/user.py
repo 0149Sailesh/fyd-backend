@@ -11,4 +11,4 @@ class User(Document):
     phone_number = StringField(max_length=10, Required=True, primary_key=True)
     password = StringField(Required=True)
     consentData = LazyReferenceField(Consent, reverse_delete_rule=NULLIFY, default=None)
-    FetchFIData = LazyReferenceField(FIData, reverse_delete_rule=NULLIFY, default=None)
+    fetchFIData = LazyReferenceField(FIData, reverse_delete_rule=NULLIFY, default=None)

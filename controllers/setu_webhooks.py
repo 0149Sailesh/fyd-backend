@@ -3,29 +3,18 @@ from uuid import uuid4
 
 from app.helpers import convertDateToISOFormat
 
-from schema.setu import ConsentNotificationWebhook_Request
-from .setu import (
-    approveConsent,
-    pausedConsent,
-    rejectConsent,
-    revokeConsent,
-    pausedConsent,
-)
+from .user import updateConsentStatusAndConsentId
+
+from schema.setu import Notifier_ConsentStatusNotification
 
 
 def consentWebHookNotificationHandler(
-    consentData: ConsentNotificationWebhook_Request.ConsentStatusNotification,
+    consentData: Notifier_ConsentStatusNotification,
 ):
-    """Handler for consent webhook"""
-    consentStatusHandler = {
-        "ACTIVE": approveConsent,
-        "REJECTED": rejectConsent,
-        "REVOKED": revokeConsent,
-        "PAUSED": pausedConsent,
-    }
-
-    # TODO: Finish this route
-    (consentStatusHandler[consentData.consentStatus])(consentData.consentId)
+    """Updates the consent Id and status"""
+    updateConsentStatusAndConsentId(
+        consentData.consentHandle, consentData.consentId, consentData.consentStatus
+    )
 
     return _defaultWebHookResponse()
 
