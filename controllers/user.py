@@ -4,7 +4,7 @@ import json
 
 from model.user import User
 from model.consent import Consent, ConsentStatusEnum
-from model.data import FIData
+from model.data import DataStatusEnum, FIData
 
 from app.helpers import parseControllerResponse
 
@@ -223,3 +223,15 @@ def createFIConsentObj(key, sessionId, **kwargs):
             if isResponseParsed
             else (False, {"error": e})
         )
+
+
+def updateStatusOfFIObject(sessionId, status, **kwargs):
+    fi = FIData.objects.get(sessionId=sessionId)
+
+    fi.status = DataStatusEnum[status]
+
+    fi.save()
+    print("sessionId : ", sessionId)
+    print("status : ", fi.status.value)
+
+    return (True, None)

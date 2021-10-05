@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from app.helpers import convertDateToISOFormat
 
-from .user import updateConsentStatusAndConsentId
+from .user import updateConsentStatusAndConsentId, updateStatusOfFIObject
 
 from schema.setu import Notifier_ConsentStatusNotification
 
@@ -15,6 +15,16 @@ def consentWebHookNotificationHandler(
     updateConsentStatusAndConsentId(
         consentData.consentHandle, consentData.consentId, consentData.consentStatus
     )
+
+    return _defaultWebHookResponse()
+
+
+def fiDataWebHookNotificationHandler(
+    sessionId: str,
+):
+    """Updates the consent Id and status"""
+
+    updateStatusOfFIObject(sessionId, "READY")
 
     return _defaultWebHookResponse()
 

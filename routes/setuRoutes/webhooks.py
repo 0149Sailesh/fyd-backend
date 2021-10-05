@@ -2,8 +2,14 @@
 
 from fastapi import APIRouter, Body
 
-from controllers.setu_webhooks import consentWebHookNotificationHandler
-from schema.setu import ConsentNotificationWebhook_Request
+from controllers.setu_webhooks import (
+    consentWebHookNotificationHandler,
+    fiDataWebHookNotificationHandler,
+)
+from schema.setu import (
+    ConsentNotificationWebhook_Request,
+    FINotificationNotificationWebhook_Request,
+)
 
 router = APIRouter()
 
@@ -13,3 +19,10 @@ def consentWebhookNotification(
     consentData: ConsentNotificationWebhook_Request = Body(...),
 ):
     return consentWebHookNotificationHandler(consentData.ConsentStatusNotification)
+
+
+@router.post("/fi/notification")
+def consentWebhookNotification(
+    fiData: FINotificationNotificationWebhook_Request = Body(...),
+):
+    return fiDataWebHookNotificationHandler(fiData.FIStatusNotification.sessionId)
