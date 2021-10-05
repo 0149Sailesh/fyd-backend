@@ -40,8 +40,6 @@ def createAConsentRequestHandler(mobileNumber, **kwargs):
             {"error": response},
         )
 
-    # successful, do something
-    # TODO: do all db stuff
     return (
         parseControllerResponse(data={"setu": response}, statuscode=200)
         if isResponseParsed
@@ -54,25 +52,24 @@ def checkConsentStatusHandler(consentHandle, **kwargs):
     Updates the database with relevent details"""
     isResponseParsed = kwargs.get("isParsed", False)
 
-    success, response = _checkConsentStatusWithSetu(consentHandle)
+    response, error = _checkConsentStatusWithSetu(consentHandle)
 
-    if not success:
-        print(
-            f"failed to check consent details for {consentHandle = } due to, {response}"
-        )
+    if error:
+        print(f"failed to check consent details for {consentHandle = } due to, {error}")
         return (
             parseControllerResponse(
-                data={"success": False}, statuscode=500, error=response
+                data={"success": False}, statuscode=500, error=error
             )
             if isResponseParsed
-            else {"error": response}
+            else None,
+            {"error": error},
         )
 
     return (
         parseControllerResponse(data={"setu": response}, statuscode=200)
         if isResponseParsed
-        else True,
-        response,
+        else response,
+        None,
     )
 
 
@@ -127,7 +124,10 @@ def _checkConsentStatusWithSetu(consentHandle):
 
     print(json.dumps(response.json(), indent=2))
 
-    return response.status_code == requests.codes.ok, response.json()
+    return (
+        response.json(),
+        None if response.status_code == requests.codes.ok else response.json(),
+    )
 
 
 def _sendConsentRequestToSetu(phoneNumber):

@@ -7,7 +7,11 @@ from controllers.setu import (
     checkConsentStatusHandler,
     fetchSignedConsentHandler,
 )
-from controllers.user import createConsentObj
+from controllers.user import (
+    createConsentObj,
+    findUserWithId,
+    updateConsentStatusAndConsentId,
+)
 
 from utils.auth import auth_handler
 from app.helpers import ErrorResponseModel, ResponseModel
@@ -40,12 +44,48 @@ def requestForUserConsent(userId=Depends(auth_handler.auth_wrapper)):
     )
 
 
-@router.get("/check/{consentHandle}")
-def checkConsentStatus(consentHandle: str):
-    resp = checkConsentStatusHandler(consentHandle=consentHandle, isParsed=True)
-    if resp["statusCode"] == 200:
-        return {"data": resp["data"]}
-    return {"error": resp["error"]}
+@router.get("/check")
+def checkConsentStatus(userId=Depends(auth_handler.auth_wrapper)):
+    user, error = findUserWithId(userId)
+    if error:
+        return ErrorResponseModel(error, 401, message="Invalid user id")
+    consent = user.consentData.fetch()
+    resp, error = checkConsentStatusHandler(consent.consentHandle)
+    if error:
+        return ErrorResponseModel(
+            error={
+                "error": error,
+                "message": "something went wrong while checking consent status",
+            },
+            statuscode=500,
+            message="something went wrong while checking consent status",
+        )
+
+    if resp["ConsentStatus"]["status"] == "READY":
+        resp["ConsentStatus"]["status"] = "ACTIVE"
+    if resp["ConsentStatus"]["status"] == "FAILED":
+        resp["ConsentStatus"]["status"] = "REJECTED"
+
+    _, error = updateConsentStatusAndConsentId(
+        consent.consentHandle,
+        resp["ConsentStatus"]["id"],
+        resp["ConsentStatus"]["status"],
+    )
+
+    if error:
+        return ErrorResponseModel(
+            error={
+                "error": error,
+                "message": "something went wrong while checking consent status",
+            },
+            statuscode=500,
+            message="something went wrong while checking consent status",
+        )
+
+    return ResponseModel(
+        data={"success": True, "status": resp["ConsentStatus"]["status"]},
+        message="Successfully requested for consent",
+    )
 
 
 @router.get("/fetch/{consentId}")
