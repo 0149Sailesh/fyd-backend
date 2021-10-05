@@ -28,6 +28,14 @@ async def startup():
     # db connection
     connect_db()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[config.FRONTEND_ORIGIN],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 app.include_router(api_router, tags=["api"], prefix="/api")
 
