@@ -221,26 +221,26 @@ def requestFIDataHandler(user, **kwargs):
     )
 
 
-def fetchFIDataHandler(**kwargs):
+def fetchFIDataHandler(fiData, **kwargs):
     """Gets the data from the Setu API after its ready, decrypts it and returns it as an array of data"""
 
     isResponseParsed = kwargs.get("isParsed", False)
 
-    # TODO: remove hard coding and fetch this from database
-    sessionId = ""
-    (success, resp) = _fetchFIDataFromSetu(sessionId)
+    sessionId = fiData.sessionId
+    (resp, error) = _fetchFIDataFromSetu(sessionId)
 
-    if not success:
+    if error:
         # Something went wrong
-        print(f"Couldn't fetch data for {sessionId = } due to {str(resp)}")
+        print(f"Couldn't fetch data for {sessionId = } due to {str(error)}")
         return (
-            parseControllerResponse(data={"success": False}, statuscode=500, error=resp)
+            parseControllerResponse(
+                data={"success": False}, statuscode=500, error=error
+            )
             if isResponseParsed
-            else {"error": resp}
+            else (None, {"error": error})
         )
 
-    # TODO: remove hard-code and fetch this from database
-    ecdhKey = {}
+    ecdhKey = json.loads(fiData.key)
 
     data, error = _decryptFIData(resp, ecdhKey)
 
@@ -251,13 +251,13 @@ def fetchFIDataHandler(**kwargs):
                 data={"success": False}, statuscode=500, error=error
             )
             if isResponseParsed
-            else {"error": error}
+            else (None, {"error": error})
         )
 
     return (
         parseControllerResponse(data={"setu": data}, statuscode=200)
         if isResponseParsed
-        else True
+        else (data, None)
     )
 
 
@@ -287,12 +287,12 @@ def _decryptFIData(encryptedData, ecdhKey):
             return (None, parsedData["errorInfo"])
 
         # base64 string -> bytes -> string -> json
-        unencodedData = json.dumps(
-            (base64.b64decode(parsedData["base64Data"])).decode("utf-8")
-        )
-        print(json.dumps(json.loads(unencodedData), indent=4))
-        decryptedData.append(unencodedData)
+        unencodedData = (base64.b64decode(parsedData["base64Data"])).decode("ascii")
 
+        # print(json.dumps(json.loads(unencodedData), indent=4))
+        decryptedData.append(json.loads(unencodedData))
+
+    print(type(decryptedData[0]))
     return decryptedData, None
 
 
@@ -341,6 +341,10 @@ def _fetchFIDataFromSetu(sessionId):
 
     headers = createAuthHeadersForSetuAPI({"sessionId": sessionId})
 
-    resp = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers)
 
-    return resp.status_code == requests.codes.ok, resp.json()
+    return (
+        (response.json(), None)
+        if response.status_code == requests.codes.ok
+        else (None, response.json())
+    )

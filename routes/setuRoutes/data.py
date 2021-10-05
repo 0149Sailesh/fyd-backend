@@ -44,7 +44,32 @@ def requestFIData(user_id=Depends(auth_handler.auth_wrapper)):
 
 @router.get("/fetch")
 def fetchFIData(user_id=Depends(auth_handler.auth_wrapper)):
-    resp = fetchFIDataHandler(isParsed=True)
-    if resp["statusCode"] == 200:
-        return {"data": resp["data"]}
-    return {"error": resp["error"]}
+    user, error = findUserWithId(user_id)
+    if error:
+        return ErrorResponseModel(error, 401, message="Invalid user id")
+    fiData = user.fetchFIData.fetch()
+    if fiData.status.value != 3:
+        return ErrorResponseModel(
+            error={
+                "error": "Data not ready",
+            },
+            statuscode=400,
+            message="Data not ready",
+        )
+    resp, error = fetchFIDataHandler(fiData)
+    if error:
+        return ErrorResponseModel(
+            error={
+                "error": error,
+                "message": "something went wrong while fetching for FI Data",
+            },
+            statuscode=500,
+            message="something went wrong while fetching for FI Data",
+        )
+
+    fiData.delete()
+    
+    return ResponseModel(
+        data={"data": resp},
+        message="Successfully fetched signed consent",
+    )
