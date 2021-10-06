@@ -27,6 +27,7 @@ class _Config:
         self.RAHASYA_BASE_URL = config.get(
             "RAHASYA_BASE_URL", "https://rahasya.setu.co/ecc/v1/"
         )
+        self.FRONTEND_ORIGIN = config.get("FRONTEND_ORIGIN", "http://localhost:8080")
         self.normalizeUrl()
 
     def normalizeUrl(self):
